@@ -6,7 +6,653 @@
 
 ---
 
-## 🆕 最新文档（推荐优先阅读）
+## � MPP-Core 改进建议 (2025-10-31)
+
+> 基于 Codex、Gemini CLI、Kode 三个生产级 Coding Agent 的架构分析，结合 mpp-core 当前实现状态，提供的关键改进建议。
+
+### 当前 mpp-core 架构概览
+
+```mermaid
+flowchart TB
+    subgraph "当前实现"
+        LLM[KoogLLMService<br/>基于 Koog AI]
+        COMPILER[DevInsCompiler<br/>语法编译器]
+        HISTORY[ChatHistoryManager<br/>会话管理]
+        MODEL[ModelRegistry<br/>多模型支持]
+    end
+    
+    subgraph "缺失组件"
+        COMM[异步通信层<br/>❌]
+        SCHEDULER[工具调度器<br/>❌]
+        POLICY[权限控制<br/>❌]
+        PARALLEL[并发执行<br/>❌]
+        SUBAGENT[子任务机制<br/>❌]
+    end
+    
+    LLM --> COMPILER
+    COMPILER --> HISTORY
+    MODEL --> LLM
+    
+    style COMM fill:#ffcccc
+    style SCHEDULER fill:#ffcccc
+    style POLICY fill:#ffcccc
+    style PARALLEL fill:#ffcccc
+    style SUBAGENT fill:#ffcccc
+```
+
+### 核心问题诊断
+
+#### 1. 缺乏异步通信层 ⚠️ 高优先级
+
+**问题**:
+- `KoogLLMService` 直接调用 LLM，没有解耦层
+- UI 和核心逻辑紧耦合，难以实现响应式界面
+- 无法实现后台任务和中断机制
+
+**参考方案**: Codex Queue Pair 模式
+```kotlin
+// 建议实现
+sealed class AgentSubmission {
+    data class SendPrompt(val text: String) : AgentSubmission()
+    data class CancelTask(val taskId: String) : AgentSubmission()
+    data class ApproveToolCall(val callId: String) : AgentSubmission()
+}
+
+sealed class AgentEvent {
+    data class StreamUpdate(val text: String) : AgentEvent()
+    data class ToolCallRequest(val tool: String, val params: Map<String, Any>) : AgentEvent()
+    data class TaskComplete(val result: String) : AgentEvent()
+    data class Error(val message: String) : AgentEvent()
+}
+
+class AgentOrchestrator {
+    private val submissionChannel = Channel<AgentSubmission>(Channel.BUFFERED)
+    private val eventChannel = Channel<AgentEvent>(Channel.BUFFERED)
+    
+    suspend fun submit(submission: AgentSubmission) {
+        submissionChannel.send(submission)
+    }
+    
+    fun events(): Flow<AgentEvent> = eventChannel.receiveAsFlow()
+}
+```
+
+**收益**:
+- ✅ UI 完全解耦，支持 Compose/Web/CLI 多端
+- ✅ 天然支持取消和中断
+- ✅ 更好的测试性
+
+---
+
+#### 2. 缺乏工具调度系统 ⚠️ 高优先级
+
+**问题**:
+- 工具调用逻辑散落在各处，没有统一编排
+- 无审批机制，安全风险高（直接执行 shell 等）
+- 无状态追踪，难以调试和监控
+
+**参考方案**: Gemini CLI CoreToolScheduler 状态机
+```kotlin
+// 建议实现
+sealed class ToolCallState {
+    data class Validating(val callId: String, val tool: String) : ToolCallState()
+    data class Scheduled(val callId: String, val tool: Tool) : ToolCallState()
+    data class AwaitingApproval(val callId: String, val tool: Tool) : ToolCallState()
+    data class Executing(val callId: String, val tool: Tool, val startTime: Long) : ToolCallState()
+    data class Success(val callId: String, val result: String) : ToolCallState()
+    data class Error(val callId: String, val error: String) : ToolCallState()
+}
+
+class ToolScheduler(
+    private val registry: ToolRegistry,
+    private val policyEngine: PolicyEngine
+) {
+    private val toolCalls = mutableMapOf<String, ToolCallState>()
+    private val queue = Channel<ToolCallState>(Channel.UNLIMITED)
+    
+    suspend fun schedule(toolName: String, params: Map<String, Any>): String {
+        val callId = UUID.randomUUID().toString()
+        val state = ToolCallState.Validating(callId, toolName)
+        queue.send(state)
+        return callId
+    }
+    
+    private suspend fun processQueue() {
+        queue.receiveAsFlow().collect { state ->
+            when (state) {
+                is ToolCallState.Validating -> validate(state)
+                is ToolCallState.Scheduled -> checkPolicy(state)
+                is ToolCallState.Executing -> execute(state)
+                // ...
+            }
+        }
+    }
+}
+```
+
+**收益**:
+- ✅ 统一的工具调用流程
+- ✅ 内置权限控制和审批
+- ✅ 完整的状态追踪和日志
+
+---
+
+#### 3. 缺乏并发执行能力 ⚠️ 中优先级
+
+**问题**:
+- 多个 `read_file` 调用串行执行，性能差 5-10 倍
+- 无读写锁保护，并发修改文件会冲突
+
+**参考方案**: Codex RwLock + 工具分类
+```kotlin
+// 建议实现
+interface Tool {
+    val name: String
+    val isReadOnly: Boolean  // 新增标志
+    suspend fun execute(params: ToolParams): ToolResult
+}
+
+class ParallelToolExecutor {
+    private val stateLock = ReentrantReadWriteLock()
+    
+    suspend fun executeBatch(calls: List<ToolCall>): List<ToolResult> {
+        // 分类工具
+        val (readCalls, writeCalls) = calls.partition { 
+            registry.getTool(it.name)?.isReadOnly == true 
+        }
+        
+        // 并行执行只读工具
+        val readResults = coroutineScope {
+            readCalls.map { call ->
+                async {
+                    stateLock.readLock().withLock {
+                        executeTool(call)
+                    }
+                }
+            }.awaitAll()
+        }
+        
+        // 串行执行写工具
+        val writeResults = writeCalls.map { call ->
+            stateLock.writeLock().withLock {
+                executeTool(call)
+            }
+        }
+        
+        return readResults + writeResults
+    }
+}
+```
+
+**收益**:
+- ✅ Read 操作 5-10x 性能提升
+- ✅ 并发安全保障
+- ✅ 更好的资源利用
+
+---
+
+#### 4. 缺乏子任务机制 (Subagent) ⚠️ 中优先级
+
+**问题**:
+- 复杂任务无法分解和隔离
+- 无法限制子任务的工具权限（安全问题）
+- 难以实现结构化的任务编排
+
+**参考方案**: Gemini CLI AgentExecutor
+```kotlin
+// 建议实现
+data class AgentDefinition(
+    val name: String,
+    val systemPrompt: String,
+    val allowedTools: List<String>,  // 只授予必要工具
+    val outputSchema: JsonSchema?     // 强制结构化输出
+)
+
+class AgentExecutor(
+    private val definition: AgentDefinition,
+    private val parentRegistry: ToolRegistry
+) {
+    // 创建隔离的工具注册表
+    private val isolatedRegistry = ToolRegistry().apply {
+        definition.allowedTools.forEach { toolName ->
+            parentRegistry.getTool(toolName)?.let { register(it) }
+        }
+        // 强制添加 complete_task 工具
+        register(CompleteTaskTool(definition.outputSchema))
+    }
+    
+    suspend fun run(inputs: Map<String, Any>): AgentResult {
+        var turnCount = 0
+        val maxTurns = 20
+        
+        while (turnCount < maxTurns) {
+            val response = llm.chat(history)
+            
+            // 检查是否调用了 complete_task
+            val completeCall = response.toolCalls.find { it.name == "complete_task" }
+            if (completeCall != null) {
+                return AgentResult.Success(completeCall.output)
+            }
+            
+            // 执行其他工具调用
+            processToolCalls(response.toolCalls)
+            turnCount++
+        }
+        
+        return AgentResult.MaxTurnsReached
+    }
+}
+```
+
+**典型用例**:
+```kotlin
+// 定义代码审查子 Agent
+val codeReviewer = AgentDefinition(
+    name = "code-reviewer",
+    systemPrompt = "You review code for security and quality issues...",
+    allowedTools = listOf("read_file", "grep", "git_diff"),  // 只读权限
+    outputSchema = JsonSchema.of<CodeReviewResult>()
+)
+
+// 在主 Agent 中调用
+val executor = AgentExecutor(codeReviewer, mainRegistry)
+val result = executor.run(mapOf("filePath" to "src/Auth.kt"))
+// 返回结构化的审查结果
+```
+
+**收益**:
+- ✅ 任务隔离和权限控制
+- ✅ 强制类型化输出
+- ✅ 可组合的任务编排
+- ✅ 更好的调试和监控
+
+---
+
+#### 5. 循环检测和历史压缩缺失 ⚠️ 低优先级
+
+**问题**:
+- Agent 可能陷入重复调用工具的循环
+- 长对话历史导致 token 超限和成本暴增
+- 无自动恢复机制
+
+**参考方案**: Gemini CLI LoopDetection + ChatCompression
+```kotlin
+// 建议实现
+class LoopDetectionService {
+    private val toolCallHistory = mutableListOf<ToolCallRecord>()
+    private val windowSize = 10
+    
+    fun recordToolCall(toolName: String, params: Map<String, Any>) {
+        toolCallHistory.add(ToolCallRecord(toolName, params, System.currentTimeMillis()))
+    }
+    
+    fun detectLoop(): LoopResult {
+        if (toolCallHistory.size < windowSize) return LoopResult.None
+        
+        val recent = toolCallHistory.takeLast(windowSize)
+        val signature = recent.joinToString("|") { "${it.toolName}:${it.params.hashCode()}" }
+        
+        // 检测重复模式
+        val pattern = findRepeatingPattern(signature)
+        if (pattern != null && pattern.repetitions >= 3) {
+            return LoopResult.Detected(pattern)
+        }
+        
+        return LoopResult.None
+    }
+}
+
+class ChatCompressionService(private val llm: LLMService) {
+    suspend fun compress(history: List<Message>): List<Message> {
+        if (history.size < 20) return history
+        
+        // 保留最新 5 轮对话
+        val recent = history.takeLast(10)
+        
+        // 压缩中间历史
+        val middle = history.dropLast(10).drop(2)  // 保留开头的 system prompt
+        val compressed = llm.summarize(middle, maxTokens = 500)
+        
+        return history.take(2) + listOf(
+            Message.system("Previous conversation summary: $compressed")
+        ) + recent
+    }
+}
+```
+
+**收益**:
+- ✅ 自动检测和打破循环
+- ✅ 控制 token 成本
+- ✅ 保持长对话能力
+
+---
+
+#### 6. 缺乏权限控制系统 ⚠️ 高优先级
+
+**问题**:
+- 工具直接执行，无安全检查
+- 用户无法预览和批准危险操作
+- 无持久化的审批记录
+
+**参考方案**: Gemini CLI PolicyEngine
+```kotlin
+// 建议实现
+enum class PolicyDecision {
+    ALLOW,      // 自动允许
+    DENY,       // 自动拒绝
+    ASK_USER    // 需要用户确认
+}
+
+data class PolicyRule(
+    val toolPattern: Regex,
+    val decision: PolicyDecision,
+    val condition: ((ToolCall) -> Boolean)? = null
+)
+
+class PolicyEngine {
+    private val rules = mutableListOf<PolicyRule>()
+    private val approvalCache = mutableMapOf<String, Boolean>()  // 会话内缓存
+    
+    fun checkToolCall(call: ToolCall): PolicyDecision {
+        // 1. 检查缓存
+        val cacheKey = "${call.toolName}:${call.params.hashCode()}"
+        if (approvalCache.containsKey(cacheKey)) {
+            return if (approvalCache[cacheKey]!!) PolicyDecision.ALLOW else PolicyDecision.DENY
+        }
+        
+        // 2. 应用规则
+        for (rule in rules) {
+            if (rule.toolPattern.matches(call.toolName)) {
+                val conditionMet = rule.condition?.invoke(call) ?: true
+                if (conditionMet) return rule.decision
+            }
+        }
+        
+        // 3. 默认策略：危险工具需要确认
+        return if (call.isDangerous()) PolicyDecision.ASK_USER else PolicyDecision.ALLOW
+    }
+    
+    fun addRule(rule: PolicyRule) {
+        rules.add(rule)
+    }
+}
+
+// 预定义规则
+val defaultPolicy = PolicyEngine().apply {
+    // 只读工具自动允许
+    addRule(PolicyRule(
+        toolPattern = Regex("read_file|grep|glob"),
+        decision = PolicyDecision.ALLOW
+    ))
+    
+    // 危险工具需要确认
+    addRule(PolicyRule(
+        toolPattern = Regex("shell|delete_file|write_file"),
+        decision = PolicyDecision.ASK_USER
+    ))
+    
+    // 禁止某些危险操作
+    addRule(PolicyRule(
+        toolPattern = Regex("shell"),
+        decision = PolicyDecision.DENY,
+        condition = { call -> 
+            val command = call.params["command"] as? String
+            command?.contains("rm -rf") == true
+        }
+    ))
+}
+```
+
+**收益**:
+- ✅ 防止意外破坏性操作
+- ✅ 提升用户信任度
+- ✅ 灵活的策略配置
+
+---
+
+### 实施优先级和路线图
+
+```mermaid
+gantt
+    title mpp-core 改进路线图
+    dateFormat YYYY-MM-DD
+    
+    section P0 基础架构
+    异步通信层 (AgentOrchestrator)    :crit, p0_1, 2025-11-01, 5d
+    工具调度器 (ToolScheduler)        :crit, p0_2, after p0_1, 5d
+    权限控制 (PolicyEngine)           :crit, p0_3, after p0_2, 3d
+    
+    section P1 性能优化
+    并发执行 (ParallelExecutor)       :p1_1, after p0_3, 4d
+    大输出管理                         :p1_2, after p1_1, 2d
+    
+    section P1 高级功能
+    子任务机制 (AgentExecutor)        :p1_3, after p1_2, 5d
+    MCP 集成                          :p1_4, after p1_3, 4d
+    
+    section P2 智能优化
+    循环检测                           :p2_1, after p1_4, 3d
+    历史压缩                           :p2_2, after p2_1, 3d
+    会话持久化                         :p2_3, after p2_2, 3d
+```
+
+### 立即可行的改进 (本周内)
+
+#### 1. 添加 Tool 抽象接口
+```kotlin
+// 文件: mpp-core/src/commonMain/kotlin/cc/unitmesh/agent/tool/Tool.kt
+interface Tool {
+    val name: String
+    val description: String
+    val isReadOnly: Boolean
+    val parameters: ToolParameters
+    
+    suspend fun execute(params: Map<String, Any>, context: ToolContext): ToolResult
+}
+
+data class ToolResult(
+    val success: Boolean,
+    val output: String,
+    val error: String? = null,
+    val metadata: Map<String, Any> = emptyMap()
+)
+```
+
+#### 2. 引入基础通信层
+```kotlin
+// 文件: mpp-core/src/commonMain/kotlin/cc/unitmesh/agent/communication/AgentChannel.kt
+class AgentChannel {
+    private val _submissions = MutableSharedFlow<AgentSubmission>()
+    private val _events = MutableSharedFlow<AgentEvent>()
+    
+    val submissions: SharedFlow<AgentSubmission> = _submissions
+    val events: SharedFlow<AgentEvent> = _events
+    
+    suspend fun submit(submission: AgentSubmission) {
+        _submissions.emit(submission)
+    }
+    
+    suspend fun emit(event: AgentEvent) {
+        _events.emit(event)
+    }
+}
+```
+
+#### 3. 分离工具注册表
+```kotlin
+// 文件: mpp-core/src/commonMain/kotlin/cc/unitmesh/agent/tool/ToolRegistry.kt
+class ToolRegistry {
+    private val tools = mutableMapOf<String, Tool>()
+    
+    fun register(tool: Tool) {
+        tools[tool.name] = tool
+    }
+    
+    fun getTool(name: String): Tool? = tools[name]
+    
+    fun listTools(): List<Tool> = tools.values.toList()
+    
+    fun filterTools(predicate: (Tool) -> Boolean): List<Tool> {
+        return tools.values.filter(predicate)
+    }
+}
+```
+
+---
+
+### 与现有代码的整合建议
+
+#### 保持 DevInsCompiler 不变
+✅ `DevInsCompiler` 已经做得很好，保持其作为 DSL 编译器的角色。
+
+#### 重构 KoogLLMService
+```kotlin
+// 当前
+class KoogLLMService {
+    fun streamPrompt(userPrompt: String): Flow<String>
+}
+
+// 建议重构为
+class KoogLLMService(
+    private val channel: AgentChannel,  // 新增
+    private val toolScheduler: ToolScheduler  // 新增
+) {
+    suspend fun processSubmission(submission: AgentSubmission) {
+        when (submission) {
+            is AgentSubmission.SendPrompt -> {
+                val compiled = DevInsCompilerFacade.compile(submission.text)
+                streamLLM(compiled.output).collect { chunk ->
+                    channel.emit(AgentEvent.StreamUpdate(chunk))
+                }
+            }
+            is AgentSubmission.ApproveToolCall -> {
+                toolScheduler.approveCall(submission.callId)
+            }
+        }
+    }
+}
+```
+
+#### 增强 ChatHistoryManager
+```kotlin
+// 添加压缩支持
+class ChatHistoryManager(
+    private val compressionService: ChatCompressionService  // 新增
+) {
+    suspend fun addMessage(message: Message) {
+        val session = getCurrentSession()
+        session.messages.add(message)
+        
+        // 自动压缩
+        if (session.messages.size > 50) {
+            session.messages = compressionService.compress(session.messages).toMutableList()
+        }
+    }
+}
+```
+
+---
+
+### 关键设计原则
+
+1. **保持 KMP 兼容性**: 所有新组件必须在 commonMain 中实现
+2. **避免阻塞 API**: 使用 `suspend fun` 和 `Flow`，不使用 `runBlocking`
+3. **平台差异用 expect/actual**: 文件系统、进程执行等
+4. **优先协程而非回调**: 利用 Kotlin Coroutines 的优势
+5. **渐进式重构**: 每次改动保持向后兼容
+
+---
+
+### 性能目标
+
+| 指标 | 当前 | 目标 | 参考 |
+|------|------|------|------|
+| Read 工具并发 | 串行 (1x) | 并行 (5-10x) | Codex |
+| 工具调用延迟 | ~150ms | <50ms | Gemini CLI |
+| 历史 token 控制 | 无限制 | <8k tokens | Gemini CLI |
+| 循环检测 | 无 | <5 次重复 | Gemini CLI |
+| 权限检查开销 | N/A | <5ms/call | Gemini CLI |
+
+---
+
+### 测试策略
+
+#### 单元测试 (P0)
+```kotlin
+// 测试异步通信
+@Test
+fun `should emit events when submission processed`() = runTest {
+    val channel = AgentChannel()
+    val events = mutableListOf<AgentEvent>()
+    
+    launch {
+        channel.events.take(2).toList(events)
+    }
+    
+    channel.submit(AgentSubmission.SendPrompt("test"))
+    // ...
+    
+    assertEquals(2, events.size)
+}
+```
+
+#### 集成测试 (P1)
+```kotlin
+// 测试完整工具调用流程
+@Test
+fun `should execute tool with approval`() = runTest {
+    val orchestrator = AgentOrchestrator(
+        registry = testToolRegistry,
+        policy = testPolicyEngine
+    )
+    
+    orchestrator.submit(AgentSubmission.SendPrompt("/read file.txt"))
+    
+    val event = orchestrator.events().first()
+    assertTrue(event is AgentEvent.ToolCallRequest)
+}
+```
+
+#### 性能测试 (P1)
+```kotlin
+@Test
+fun `parallel read should be faster than serial`() = runTest {
+    val files = List(10) { "file$it.txt" }
+    
+    val serialTime = measureTime {
+        files.forEach { readFile(it) }
+    }
+    
+    val parallelTime = measureTime {
+        parallelExecutor.executeBatch(files.map { ReadFileCall(it) })
+    }
+    
+    assertTrue(parallelTime < serialTime / 3)
+}
+```
+
+---
+
+### 文档更新计划
+
+1. **架构文档**: `mpp-core/docs/architecture.md`
+   - 新增通信层设计
+   - 工具调度器状态机图
+   - 子任务机制说明
+
+2. **API 文档**: `mpp-core/docs/api-reference.md`
+   - Tool 接口规范
+   - AgentOrchestrator 使用指南
+   - PolicyEngine 配置示例
+
+3. **迁移指南**: `mpp-core/docs/migration-guide.md`
+   - 从当前 API 迁移到新架构
+   - Breaking changes 说明
+   - 兼容性策略
+
+---
+
+## �🆕 最新文档（推荐优先阅读）
 
 ### 1. [gemini-cli-architecture.md](gemini-cli-architecture.md) ⭐⭐⭐⭐⭐
 **Google Gemini CLI 深度解析** - TypeScript 实现的最佳实践
