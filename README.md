@@ -1,8 +1,57 @@
-# AutoDev Sketch 重构实现指南
+# Coding Agent 架构分析与实现指南
 
 ## 📋 概述
 
-本文档基于对原始 IDEA 版本 sketch 实现的分析，参考 Gemini CLI 的架构设计，为当前项目使用 @mpp-core 和 @mpp-ui 重构 AutoDev
+本目录包含对多个生产级 Coding Agent 的深入架构分析，以及为 AutoDev 项目重构提供的详细实现指南。
+
+---
+
+## 🆕 最新文档（推荐优先阅读）
+
+### 1. [gemini-cli-architecture.md](gemini-cli-architecture.md) ⭐⭐⭐⭐⭐
+**Google Gemini CLI 深度解析** - TypeScript 实现的最佳实践
+
+**核心亮点**:
+- 🎯 **CoreToolScheduler**: 状态机驱动的工具编排
+- 🔐 **PolicyEngine**: 声明式权限控制系统
+- 🧩 **AgentExecutor**: 完全隔离的 Subagent 机制
+- 🔄 **LoopDetection**: 自动循环检测和历史压缩
+- 💻 **IDE 集成**: 增量上下文同步
+- 📦 **输出管理**: 自动截断大输出并保存文件
+
+**为什么必读**:
+- ✅ 最完整的工具编排状态机设计
+- ✅ 生产级的权限控制方案
+- ✅ 独创的 Subagent 任务隔离机制
+- ✅ 实用的循环检测和压缩策略
+- ✅ 所有代码均来自实际生产环境
+
+**阅读时间**: 50-60 分钟
+
+### 2. [coding-agents-architecture.md](coding-agents-architecture.md) ⭐⭐⭐⭐
+**Codex vs Gemini CLI 双重对比** - 架构设计最佳实践总结
+
+**内容**:
+- 🏗️ 6 大核心维度对比（通信、编排、并发、Subagent、状态、工具发现）
+- 📊 详细的性能与功能对比表
+- 🎯 AutoDev 4 阶段重构路线图（P0/P1/P2 优先级）
+- 🔍 Codex 和 Gemini CLI 的核心洞察
+- 💡 最佳实践融合建议
+
+**为什么重要**:
+- ✅ 一次性了解两个顶级实现
+- ✅ 清晰的架构决策依据
+- ✅ 可执行的重构计划
+
+**阅读时间**: 40-50 分钟
+
+---
+
+## � 历史参考文档
+
+### 3. AutoDev Sketch 重构实现指南 (本文件后续内容)
+
+本文档基于对原始 IDEA 版本 sketch 实现的分析，参考多个 Coding Agent 的架构设计，为当前项目使用 @mpp-core 和 @mpp-ui 重构 AutoDev
 Coding Agent 提供详细的实现指南。
 
 ## 🏗️ 架构设计
