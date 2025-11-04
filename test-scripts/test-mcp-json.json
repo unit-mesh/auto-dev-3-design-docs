@@ -1,0 +1,16 @@
+{
+  "filesystem": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+    "env": {}
+  },
+  "github": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_TOKEN": "test-token"
+    }
+  }
+}
+
+
