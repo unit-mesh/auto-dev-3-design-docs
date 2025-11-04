@@ -1,0 +1,17 @@
+{
+  "name": "test-scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "debug-tool-formatting.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}
