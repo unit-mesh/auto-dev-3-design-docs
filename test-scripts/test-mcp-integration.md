@@ -93,9 +93,12 @@ The integration can be tested by:
 2. ✅ **API Compatibility**: Existing code continues to work
 3. ✅ **Server Grouping**: Tools are now properly grouped by MCP server
 4. ✅ **UI Updates**: Configuration dialog displays tools by server
-5. ⏳ **Real MCP Integration**: Tools are discovered from actual MCP servers
-6. ⏳ **Error Handling**: Graceful handling of server connection issues
-7. ⏳ **Performance**: Caching works correctly
+5. ✅ **Incremental Loading**: Each MCP server loads independently
+6. ✅ **Loading States**: Real-time loading status for each server
+7. ✅ **Application Launch**: Desktop and CLI applications start successfully
+8. ⏳ **Real MCP Integration**: Tools are discovered from actual MCP servers
+9. ⏳ **Error Handling**: Graceful handling of server connection issues
+10. ⏳ **Performance**: Caching works correctly
 
 ## Next Steps
 
