@@ -1,0 +1,9 @@
+active: glm-test
+configs:
+  - name: glm-test
+    provider: custom_openai_base
+    apiKey: 7145ac1bf6474f2783e8b4d52b335ab0.gfq0BBvvFy04iwTb
+    model: gpt-4o
+    baseUrl: https://open.bigmodel.cn/api/paas/v4
+    temperature: 0.7
+    maxTokens: 8192
