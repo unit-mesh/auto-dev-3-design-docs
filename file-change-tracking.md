@@ -147,3 +147,4 @@ FileChangeTracker.changes.collectAsState()
 - IDEA 版本实现: `core/src/main/kotlin/cc/unitmesh/devti/gui/planner/PlannerResultSummary.kt`
 - Koog Agents 实现: `Samples/koog/agents/agents-ext/src/commonMain/kotlin/ai/koog/agents/ext/tool/file/EditFileTool.kt`
 
+

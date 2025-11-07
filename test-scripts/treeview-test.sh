@@ -49,3 +49,4 @@ echo "4. Click files to open in FileViewerPanel"
 echo "5. Click folders to expand/collapse"
 echo ""
 
+
