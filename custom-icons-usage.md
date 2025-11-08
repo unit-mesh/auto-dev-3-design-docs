@@ -217,3 +217,4 @@ A: 不会。ImageVector 是矢量格式，可以无损缩放到任意大小。
 A: ImageVector 支持渐变，可以在 `path {}` 中使用 `Brush.linearGradient()` 或 `Brush.radialGradient()`，但当前实现为了简化使用了单色。
 
 
+

@@ -47,3 +47,4 @@ echo "Total tool calls: $(grep -c "🔧 /" simple-test.log || echo "0")"
 echo ""
 echo "Full log saved to: simple-test.log"
 
+
