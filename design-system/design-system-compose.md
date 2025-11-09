@@ -268,7 +268,7 @@ fun DynamicColorComponent() {
 
 ## 参考
 
-- [TypeScript 色彩系统](./design-system-color.md)
+- [TypeScript 色彩系统](design-system-color.md)
 - [Material 3 Color System](https://m3.material.io/styles/color/overview)
 - [Compose Material 3 文档](https://developer.android.com/jetpack/compose/designsystems/material3)
 

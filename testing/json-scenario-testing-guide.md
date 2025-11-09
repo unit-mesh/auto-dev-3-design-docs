@@ -399,9 +399,9 @@ it.only('应该成功加载并运行 Spring AI DeepSeek 场景', ...)
 
 ## 🔗 相关文档
 
-- [JSON 场景加载器文档](../mpp-ui/src/test/framework/loaders/README.md)
+- [JSON 场景加载器文档](../../mpp-ui/src/test/framework/loaders/README.md)
 - [场景目录 README](../mpp-ui/src/test/integration-v2/scenarios/README.md)
-- [测试框架概述](../mpp-ui/src/test/framework/README.md)
+- [测试框架概述](../../mpp-ui/src/test/framework/README.md)
 
 ## 🤝 贡献
 

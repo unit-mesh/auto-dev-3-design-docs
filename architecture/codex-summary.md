@@ -295,7 +295,7 @@ class ToolCallRuntime {
 
 - **完整架构分析**: [codex-architecture-analysis.md](codex-architecture-analysis.md)
 - **重构实现指南**: [MERGED_DOCUMENTATION.md](../MERGED_DOCUMENTATION.md)
-- **Agent 规范**: [AGENTS.md](../AGENTS.md)
+- **Agent 规范**: [AGENTS.md](../../AGENTS.md)
 
 ---
 

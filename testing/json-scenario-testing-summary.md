@@ -244,8 +244,8 @@ JSON 配置特别适合：
 
 ## 📚 文档链接
 
-- [完整指南](./json-scenario-testing-guide.md)
-- [JSON 加载器文档](../mpp-ui/src/test/framework/loaders/README.md)
+- [完整指南](json-scenario-testing-guide.md)
+- [JSON 加载器文档](../../mpp-ui/src/test/framework/loaders/README.md)
 - [场景目录 README](../mpp-ui/src/test/integration-v2/scenarios/README.md)
 
 ## 🔄 下一步

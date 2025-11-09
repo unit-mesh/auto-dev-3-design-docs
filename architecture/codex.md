@@ -168,7 +168,7 @@
 ## 🔗 相关文档
 
 - **主项目文档**: [../MERGED_DOCUMENTATION.md](../MERGED_DOCUMENTATION.md)
-- **Agent 规范**: [../AGENTS.md](../AGENTS.md)
+- **Agent 规范**: [../AGENTS.md](../../AGENTS.md)
 - **Codex 源码**: [../Samples/codex/codex-rs/](../Samples/codex/codex-rs/)
 
 ## 📝 更新记录
