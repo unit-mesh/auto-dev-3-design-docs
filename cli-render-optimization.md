@@ -112,3 +112,4 @@ node dist/jsMain/typescript/index.js server \
 ✅ **Consistent**: Matches local mode behavior
 ✅ **Professional**: Looks like a polished AI agent interaction
 
+
