@@ -1,0 +1,47 @@
+flowchart TB
+  %% Multiplatform Renderer Architecture (Updated with Kotlin Server Side)
+
+  subgraph Core
+    direction TB
+    I["CodingAgentRenderer.kt\n接口契约"]
+    BRK["BaseRenderer.kt\n通用基础实现"]
+    JSE["RendererExports.kt\nJsCodingAgentRenderer 导出"]
+    I --> BRK
+    I --> JSE
+  end
+
+  subgraph KotlinSide["Kotlin 平台渲染"]
+    direction TB
+    CR["ComposeRenderer.kt\nUI 渲染 (extends BaseRenderer)"]
+    DEF["DefaultCodingAgentRenderer.kt\n基础控制台输出 (extends BaseRenderer)"]
+    SSR["ServerSideRenderer.kt\n事件流/SSE (implements 接口)"]
+    BRK --> CR
+    BRK --> DEF
+    I --> SSR
+  end
+
+  subgraph JSSide["TypeScript / Node 渲染"]
+    direction TB
+    BRTS["BaseRenderer.ts\n镜像基础实现"]
+    CLIRS["CliRenderer.ts\n命令行 (extends BaseRenderer)"]
+    SVRS["ServerRenderer.ts\n服务端输出 (extends BaseRenderer)"]
+    TUIRS["TuiRenderer.ts\nInk/React (implements 接口)"]
+    JSE --> BRTS
+    BRTS --> CLIRS
+    BRTS --> SVRS
+    JSE --> TUIRS
+  end
+
+  subgraph Consumers["应用/消费端"]
+    direction TB
+    CLI["CLI 应用 (Node)"]
+    SRV["Node Server 服务"]
+    UI["Compose 桌面/Android/Web"]
+    SSE["Kotlin Server SSE"]
+  end
+
+  CLIRS --> CLI
+  SVRS --> SRV
+  CR --> UI
+  SSR --> SSE
+  DEF --> UI

@@ -1,0 +1,62 @@
+flowchart LR
+  %% === STYLE ===
+  classDef core fill:#f3f7ff,stroke:#4a6cf7,stroke-width:1px;
+  classDef kotlin fill:#f9f5ff,stroke:#9b59b6,stroke-width:1px;
+  classDef ts fill:#fff7f2,stroke:#e67e22,stroke-width:1px;
+  classDef consumer fill:#f2fcf6,stroke:#27ae60,stroke-width:1px;
+
+  %% === CORE CONTRACTS ===
+  subgraph Core["Core (渲染接口 + 基础实现)"]
+    I["CodingAgentRenderer.kt\n接口契约"]
+    BRK["BaseRenderer.kt\n通用基础实现"]
+    JSE["RendererExports.kt\nJS 导出桥"]
+  end
+
+  class I,BRK,JSE core
+
+  I --> BRK
+  I --> JSE
+
+  %% === KOTLIN SIDE ===
+  subgraph KotlinSide["Kotlin 渲染实现"]
+    CR["ComposeRenderer.kt\nUI 渲染 (extends BaseRenderer)"]
+    DEF["DefaultCodingAgentRenderer.kt\n控制台输出 (extends BaseRenderer)"]
+    SSR["ServerSideRenderer.kt\nSSE 渲染 (implements 接口)"]
+  end
+
+  class CR,DEF,SSR kotlin
+
+  BRK --> CR
+  BRK --> DEF
+  I --> SSR
+
+  %% === TS / NODE SIDE ===
+  subgraph JSSide["TypeScript / Node 渲染实现"]
+    BRTS["BaseRenderer.ts\n镜像基础实现"]
+    CLIRS["CliRenderer.ts\n命令行渲染"]
+    SVRS["ServerRenderer.ts\n服务器输出"]
+    TUIRS["TuiRenderer.ts\nInk/TUI 渲染"]
+  end
+
+  class BRTS,CLIRS,SVRS,TUIRS ts
+
+  JSE --> BRTS
+  BRTS --> CLIRS
+  BRTS --> SVRS
+  JSE --> TUIRS
+
+  %% === CONSUMERS ===
+  subgraph Consumers["使用方 / 应用层"]
+    CLI["CLI (Node)"]
+    SRV["Node 后端服务"]
+    UI["Compose/Android/Web UI"]
+    SSE["Kotlin Server"]
+  end
+
+  class CLI,SRV,UI,SSE consumer
+
+  CLIRS --> CLI
+  SVRS --> SRV
+  CR --> UI
+  DEF --> UI
+  SSR --> SSE
