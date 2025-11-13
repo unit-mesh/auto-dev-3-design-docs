@@ -239,3 +239,4 @@ curl -N http://localhost:8080/api/sessions/{sessionId}/stream \
 3. 网络连接是否正常
 4. 客户端日志和服务器日志
 
+
