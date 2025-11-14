@@ -1,0 +1,4 @@
+InvalidPackageDeclaration - [BadKotlin.kt] at /Volumes/source/ai/autocrud/docs/test-scripts/linter-tests/BadKotlin.kt:1:1 - Signature=BadKotlin.kt$package test
+MaxLineLength - [veryLongFunctionNameThatExceedsTheRecommendedLengthAndShouldTriggerDetektWarningAboutNamingConventions] at /Volumes/source/ai/autocrud/docs/test-scripts/linter-tests/BadKotlin.kt:7:1 - Signature=BadKotlin.kt$BadKotlin$println("This is a very long line that exceeds the maximum line length and should trigger a detekt warning about line length being too long and should be split into multiple lines")
+MagicNumber - [z] at /Volumes/source/ai/autocrud/docs/test-scripts/linter-tests/BadKotlin.kt:17:13 - Signature=BadKotlin.kt$BadKotlin$3
+UnusedParameter - [param2] at /Volumes/source/ai/autocrud/docs/test-scripts/linter-tests/BadKotlin.kt:10:41 - Signature=BadKotlin.kt$BadKotlin$param2: Int
