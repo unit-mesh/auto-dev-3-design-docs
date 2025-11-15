@@ -1,0 +1,30 @@
+# Bad Dockerfile for testing Hadolint
+
+FROM ubuntu
+MAINTAINER John Doe <john@example.com>
+
+# No specific version
+RUN apt-get update && apt-get install -y python
+
+# Using sudo
+RUN sudo apt-get install nodejs
+
+# Not using --no-install-recommends
+RUN apt-get update && apt-get install -y curl
+
+# Unnecessary EXPOSE
+EXPOSE 8080/tcp
+
+# Using latest tag
+FROM node:latest
+
+# No WORKDIR
+RUN mkdir /app
+RUN cd /app
+
+# Using ADD instead of COPY
+ADD package.json /app/
+
+# Running as root
+CMD node server.js
+

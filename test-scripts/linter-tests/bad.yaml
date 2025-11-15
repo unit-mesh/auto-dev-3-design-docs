@@ -1,0 +1,28 @@
+# Bad YAML file for testing yamllint
+
+---
+# Trailing spaces at end   
+key: value
+
+# Inconsistent indentation
+items:
+  - item1
+   - item2  # Wrong indentation
+
+# Missing document start
+missing_doc_start: true
+
+# Line too long
+long_line: "This is a very long line that exceeds the maximum line length and should trigger a yamllint warning about line length"
+
+# Truthy values
+enabled: yes  # Should use true/false
+disabled: no
+
+# Empty values
+empty_key:
+
+# Duplicate keys
+duplicate: value1
+duplicate: value2
+

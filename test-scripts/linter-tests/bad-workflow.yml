@@ -1,0 +1,26 @@
+name: Bad Workflow
+
+on:
+  push:
+    branch: master  # Should be 'branches'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    step:  # Should be 'steps'
+      - uses: actions/checkout@v2  # Old version
+      - name: Run tests
+        run: echo "test"
+        
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: |
+          echo ${{ github.token }}  # Potential secret leak
+          npm run build
+      - name: Unknown action
+        uses: unknown/action@v1
+
