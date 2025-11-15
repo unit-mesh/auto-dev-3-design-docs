@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bad HTML File</title>
+    <!-- Missing charset -->
+</head>
+<body>
+    <!-- Unclosed tag -->
+    <div>
+        <p>This paragraph is not closed
+    </div>
+    
+    <!-- Duplicate ID -->
+    <div id="test">First</div>
+    <div id="test">Duplicate ID</div>
+    
+    <!-- Inline style -->
+    <div style="color: red;">Inline style is bad</div>
+    
+    <!-- Missing alt attribute -->
+    <img src="image.jpg">
+    
+    <!-- Invalid tag nesting -->
+    <span><div>Block in inline</div></span>
+    
+    <!-- Empty tag -->
+    <div></div>
+    
+    <!-- Missing doctype would be caught if we removed the first line -->
+    
+    <!-- Spaces in attribute -->
+    <a href = "test.html">Link</a>
+    
+</body>
+</html>
+
