@@ -241,7 +241,7 @@ let result = try await manager.executeTool(
 ## 参考资料
 
 ### 内部文档
-- [完整集成指南](./ios-mcp-integration.md)
+- [完整集成指南](ios-mcp-integration.md)
 - [快速开始](../mpp-ios/MCP_QUICKSTART.md)
 - [JVM 实现参考](../mpp-core/src/jvmMain/kotlin/cc/unitmesh/agent/mcp/)
 

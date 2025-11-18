@@ -305,9 +305,9 @@ tsc --noEmit
 
 ## 相关文档
 
-- [Renderer 接口规范](./renderer-interface-spec.md)
-- [Renderer 统一重构总结](./renderer-unification-summary.md)
-- [CLI 渲染优化](./cli-render-optimization.md)
+- [Renderer 接口规范](renderer-interface-spec.md)
+- [Renderer 统一重构总结](renderer-unification-summary.md)
+- [CLI 渲染优化](../cli/cli-render-optimization.md)
 - [设计系统 - Compose](./design-system-compose.md)
 - [设计系统 - TypeScript](./design-system-color.md)
 

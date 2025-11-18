@@ -382,8 +382,8 @@ adb shell am start -n cc.unitmesh.devins.ui/.MainActivity
 
 ## 🔗 相关文档
 
-- [重构设计方案](./refactoring-autodev-app-design.md)
-- [NavLayout 文档](../mpp-ui/src/commonMain/kotlin/cc/unitmesh/devins/ui/app/NavLayout.kt)
+- [重构设计方案](../refactoring-autodev-app-design.md)
+- [NavLayout 文档](../../mpp-ui/src/commonMain/kotlin/cc/unitmesh/devins/ui/app/NavLayout.kt)
 - [Android Material 3](https://m3.material.io/)
 - [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
 

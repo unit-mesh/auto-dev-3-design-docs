@@ -216,7 +216,7 @@ autodev server -p https://github.com/user/repo -t "Analyze code"
 
 ## 相关文档
 
-- [Remote Agent 实现总结](./remote-agent-implementation-summary.md)
-- [Remote Agent 使用指南](./remote-agent-usage.md)
-- [服务器端实现](./server/SUMMARY.md)
+- [Remote Agent 实现总结](remote-agent-implementation-summary.md)
+- [Remote Agent 使用指南](remote-agent-usage.md)
+- [服务器端实现](../server/SUMMARY.md)
 

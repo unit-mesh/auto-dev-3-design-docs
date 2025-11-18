@@ -292,7 +292,7 @@ fun MyComponent() {
 ## 参考资料
 
 - [Platform 工具类](../mpp-ui/src/commonMain/kotlin/cc/unitmesh/devins/ui/platform/Platform.kt)
-- [Main.kt 字体预加载](../mpp-ui/src/wasmJsMain/kotlin/Main.kt)
+- [Main.kt 字体预加载](../../mpp-ui/src/wasmJsMain/kotlin/Main.kt)
 - [Compose Resources 文档](https://github.com/JetBrains/compose-multiplatform/tree/master/components/resources)
 - [Noto Fonts 项目](https://github.com/googlefonts/noto-cjk)
 

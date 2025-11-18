@@ -290,8 +290,8 @@ adb logcat *:E
 
 ## 📚 扩展阅读
 
-- [重构设计方案](./refactoring-autodev-app-design.md)
-- [Android UI 实现文档](./android-ui-implementation.md)
+- [重构设计方案](../refactoring-autodev-app-design.md)
+- [Android UI 实现文档](android-ui-implementation.md)
 - [Material 3 Guidelines](https://m3.material.io/components)
 - [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
 

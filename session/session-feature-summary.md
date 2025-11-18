@@ -279,8 +279,8 @@ cd /Volumes/source/ai/autocrud
 
 ## 📚 相关文档
 
-- [设计文档](/docs/design-multi-client-collaboration.md) - 完整的架构设计
-- [使用指南](/docs/session-management-guide.md) - 详细的使用说明
+- [设计文档](/docs/desktop/design-multi-client-collaboration.md) - 完整的架构设计
+- [使用指南](/docs/session/session-management-guide.mdguide.md) - 详细的使用说明
 
 ---
 

@@ -241,6 +241,6 @@ With the new base class architecture, we can easily:
 
 ## Related Documents
 
-- [Original Tool Execution Fix](./code-review-tool-execution-fix.md)
-- [Renderer Architecture](./renderer-architecture.md)
+- [Original Tool Execution Fix](code-review-tool-execution-fix.md)
+- [Renderer Architecture](../renderer-architecture.md)
 - [Agent Executor Pattern](./architecture/agent-executor-pattern.md)

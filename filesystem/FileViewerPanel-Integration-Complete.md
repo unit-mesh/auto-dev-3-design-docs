@@ -277,8 +277,8 @@ cd mpp-viewer-web
 
 ## 相关文档
 
-- [改造说明](./FileViewerPanel-Refactoring.md)
-- [离线配置](../mpp-viewer-web/docs/OFFLINE_SETUP.md)
+- [改造说明](FileViewerPanel-Refactoring.md)
+- [离线配置](../../mpp-viewer-web/docs/OFFLINE_SETUP.md)
 - [compose-webview-multiplatform](https://github.com/KevinnZou/compose-webview-multiplatform)
 - [Monaco Editor API](https://microsoft.github.io/monaco-editor/api/index.html)
 

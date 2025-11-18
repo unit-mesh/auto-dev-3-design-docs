@@ -213,7 +213,7 @@ projects {
 
 ## 相关文档
 
-- [架构设计](./remote-agent-compose.md)
-- [服务器配置](../mpp-server/README.md)
-- [CLI 使用](../mpp-ui/README.md)
+- [架构设计](remote-agent-compose.md)
+- [服务器配置](../../mpp-server/README.md)
+- [CLI 使用](../../mpp-ui/README.md)
 

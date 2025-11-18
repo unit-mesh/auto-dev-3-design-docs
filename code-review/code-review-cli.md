@@ -248,7 +248,7 @@ Run `autodev chat` first to configure your LLM provider.
 
 ## Related Documentation
 
-- [Linter List](../mpp-core/docs/linter.md)
+- [Linter List](../../mpp-core/docs/linter.md)
 - [Design System](design-system-color.md)
-- [AutoDev CLI](../mpp-ui/README.md)
+- [AutoDev CLI](../../mpp-ui/README.md)
 

@@ -205,7 +205,7 @@ node docs/test-scripts/<script-name>
 ## 🔗 相关文档
 
 - [MPP-Core README](../../mpp-core/README.md)
-- [WASM 构建指南](./wasm-build-guide.md)
+- [WASM 构建指南](../wasm/wasm-build-guide.md)
 - [Kotlin/JS 文档](https://kotlinlang.org/docs/js-overview.html)
 
 ## 📝 已知问题

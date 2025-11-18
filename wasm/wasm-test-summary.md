@@ -137,8 +137,8 @@ ls -lh mpp-core/build/libs/
 
 ## 相关文档
 
-- ✅ [Node.js 测试指南](./nodejs-test-guide.md) - 详细的 JS 使用说明
-- ✅ [WASM 构建指南](./wasm-build-guide.md) - WASM 配置和限制
+- ✅ [Node.js 测试指南](../cli/nodejs-test-guide.md) - 详细的 JS 使用说明
+- ✅ [WASM 构建指南](wasm-build-guide.md) - WASM 配置和限制
 - ✅ [测试脚本](../docs/test-scripts/) - 各种测试示例
 
 ## 结论
